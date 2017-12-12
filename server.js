@@ -109,11 +109,9 @@ app.get('/venues', function(req, res){
 
 app.get('/events/search', function(req, res){
 	
-	var venueFile = fs.readFileSync("venues.JSON");
-	var venues=JSON.parse(venueFile);
 	
-	var file = fs.readFileSync("events.JSON");
-	var content = JSON.parse(file);
+	
+	var content = events;
 	var eventsArray = content.events;
 	
 	
@@ -247,8 +245,8 @@ app.get('/events/search', function(req, res){
 
 app.get('/events/get/:event_id', function(req, res){
 	
-	var file = fs.readFileSync("events.JSON");
-	var content = JSON.parse(file);
+	
+	var content = events;
 	var eventsList = content.events;
 	res.setHeader('content-type', 'application/json');
 	for (evnt in eventsList)
@@ -359,14 +357,14 @@ app.post('/resetEvents',function(req, res){
 function resetEvents()
 {
 	console.log("resetting Events")
-	fs.writeFile('events.json', fs.readFileSync("eventsCopy.JSON"), 'utf8');
+	events = {"events":[{"event_id":"e_1","title":"Jazz guitar off","venue_id":"v_1","date":"2018-4-4","url":"http://www.guitar.com/","blurb":"it'll be jazz great"}]};
 	
 }
 
 function resetVenues()
 {
 	console.log("resetting venues")
-	fs.writeFile('venues.json', fs.readFileSync("venuesCopy.JSON"), 'utf8');
+	venues={"venues":{"v_1":{"name":"City Hall","postcode":"ne297th","town":"Newcastle","url":"www.cityhall.com","icon":"http://media.ticketmaster.co.uk/tm/en-gb/dbimages/2477v.jpg"},"v_2":{"name":"Metro Radio","postcode":"ne297gj","town":"Newcastle","url":"www.metro.com","icon":"https://eurohostels.s3.amazonaws.com/uploads/2016/03/Metro-Radio-Arena.jpg"}}};
 
 }
 
@@ -407,8 +405,11 @@ function isAuthorised(ip,auth_token)
 
 resetEvents();
 resetVenues();
-app.set( 'port', ( process.env.PORT || 5000 ));
-;
+var port = process.env.PORT || 8080;
+app.listen(port,function()
+{
+	console.log("app running"+port);
+});
 
 
 
