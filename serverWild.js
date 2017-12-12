@@ -407,8 +407,10 @@ function isAuthorised(ip,auth_token)
 
 resetEvents();
 resetVenues();
-
-app.listen(process.env.PORT);
+var port = process.env.PORT || 8000
+app.listen(port, function() {
+    console.log("App is running on port " + port);
+});
 
 
 
