@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script>
+
+
+  $(document).ready(function(){
+  
+	
+	
+
+	var eventsToDisplay='{"events":[]}';
+	
+	console.log("doc ready");
+	
+	$("#test").click(function()
+	{
+		document.cookie = "auth_token=weee"
+		alert(document.cookie)
+		alert(document.cookie)
+		
+	}
+	);
+	
+	// neaten up
+	$("#login").click(function()
+	{
+		console.log("loiguin in")
+		var cookie = document.cookie;
+		var lastAuth_token = cookie.replace("auth_token=","");
+		var lastAuth_tokenValid=false
+		$.getJSON("/login/validate?auth_token="+lastAuth_token, function(data)
+		{
+			if (data.isValid)
+			{
+				window.location.assign("/admin?auth_token="+lastAuth_token);
+			}
+			else
+			{
+				window.location.assign("/login");
+			}
+		});
+		
+	});
+
+	
+	
+	$("#submitQuery").click(function()
+	{
+	console.log("flow 1");
+	
+	console.log("flow 2");
+		var queryString = "/events/search";
+		
+		if(dateAfter>dateBefore)
+		{
+			throw "Please enter a valid date range"
+		}
+		
+		
+		var startDate;
+		if ($("#dateAfter").val()=="")
+		{
+			console.log("flow 3");
+			startDate = new Date();
+		}
+		else
+		{
+			console.log("flow 3.1");
+			startDate = $("#dateAfter").val();
+		}
+		console.log("startdate is "+startDate.toString());
+		
+		var endDate;
+		
+		console.log("flow 4.1");
+		endDate = $("#dateBefore").val();
+		
+		console.log("enddate is "+endDate.toString());
+		
+		queryString+="?title="+$("#searchTitle").val()+"&dateAfter="+startDate+"&dateBefore="+endDate;
+		console.log("flow 4.2");
+		$.getJSON(queryString, function(data)
+		{
+			console.log("flow 4.25");
+			console.log("we got "+JSON.stringify(data)+" from server");
+			if(data.events.length==0)
+			{
+				console.log("No such events!");
+			}
+			else
+			{
+				setEventsToDisplay(JSON.stringify(data));
+				updateEvents();
+			}
+		});
+		
+		if($("#includeThirdParty").val()=="Yes")
+		{
+			console.log("were including third parties yay")
+			console.log("end date is"+endDate);
+			var dateRangeQuery="";
+			if (typeof(endDate)!="undefined")
+			{
+				console.log("flow 4.3");
+				var startDateString=new Date(Date.parse(startDate));
+				startDateString=startDateString.toISOString().slice(0,10).replace(/-/g,"")+"00";;
+				var endDateString=new Date(Date.parse(endDate));
+				endDateString=endDateString.toISOString().slice(0,10).replace(/-/g,"")+"00";
+				var dateRangeQuery=startDateString+"-"+endDateString;
+				
+			}
+			console.log("flow 4.4");
+			
+			
+			var searchTitle = $("#searchTitle").val();
+			console.log("flow 4.5");
+			
+			if (typeof(searchTitle)!="undefined")
+			{
+				searchTitle="";
+			}
+			
+		
+		}
+		
+		
+		
+		
+	
+	
+		
+	console.log("flow 5");
+		
+	
+	}); 
+	
+	function setEventsToDisplay(text)
+	{
+		console.log("setting evetns to display as: "+text);
+		eventsToDisplay=text;
+	}
+	
+	// this must be in json form {"events":[]}
+	function addEventsToDisplay(text)
+	{
+		if (text=="" || typeof(text)=="undefined")
+		{
+			console.log("tried to add evetns but nothing awas passwed in")
+		}
+		else
+		{
+			var currentEvents=JSON.parse(eventsToDisplay);
+			var newEvents=JSON.parse(text);
+			var allEvents = currentEvents.events;
+			for (i = 0; i < newEvents.length; i++) 
+			{
+	    		allEvents.push(newEvents[i]);
+			};
+			eventsToDisplay =
+			{
+				"events":allEvents
+			}
+		}
+		
+	}
+	
+	function updateEvents()
+	{
+		console.log("updatin events: "+eventsToDisplay)
+		var eventsAsArray = JSON.parse(eventsToDisplay).events;
+		var numberOfEvents = eventsAsArray.length;
+		
+		
+		
+		var eventsAsHTML = "";
+		
+		for (var i = 0 ; i < numberOfEvents ; i++)
+		{
+			eventsAsHTML += eventToHTML (eventsAsArray[i]);
+		}
+		
+		$("#eventsList").html(eventsAsHTML);
+	}
+	
+	function eventToHTML(event)
+	{
+		console.log("converting event")
+		html = '<div class="col-sm-3"> \r\n <div class="panel panel-primary"> \r\n  <div class="panel-heading">'
+		
+		if (typeof(event.title)!="undefined")
+		{
+		html += event.title
+		}
+		
+		html += '</div> \r\n <div class="panel-body">'
+		
+		var venue={}
+		if (typeof(event.venue)!="undefined")
+		{
+			$.get("./venues",function(data)
+			{
+				if (typeof(event.venue)!="undefined")
+				{
+				venue=data[event.venue]
+				html+='<img src="'+venue.icon+'" class="img-responsive" style="width:100%" alt="Image">'
+				}
+				else
+				{
+					console.log("for event the venue is not defined")
+				}
+			}
+			)
+		}
+		html+='</div> \r\n <div class="panel-footer">'
+
+		if (typeof(event.blurb)!="undefined")
+		{
+		html += "<blurbOfEvent>"+event.blurb+"</blurbOfEvent> <br>\r\n"
+		}
+		
+		if (typeof(event.date)!="undefined")
+		{
+		html += "<dateOfEvent>"+event.date+"</dateOfEvent> <br>\r\n"
+		}
+		
+		if (typeof(event.url)!="undefined")
+		{
+		html += '<a href="'+event.url+'">'+event.url.toString()+'</a> <br>\r\n'
+		}
+		
+		html+="</div>\r\n"
+		
+		
+		console.log("we just made this html: "+html)
+		return (html);
+		
+	
+	}
+
+	
+	
+	
+	
+	}); 
+
+ </script>
+  
+  <style>
+    .jumbotron 
+	{
+		margin-bottom: 0;
+    }
+   
+	
+	
+	
+	topBanner
+	{
+		background-color:rgb(102,204,0) ;
+		color:rgb(0,64,128)  ;
+		font-size:70pt;
+		text-align: center;
+		float:left;
+		width:100%;
+		
+		
+	}
+	
+	a
+	{
+	font-size:15px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+
+	}
+	
+	form
+	{
+	
+	}
+	
+	eventsList
+	{
+	}
+	
+	event
+	{
+		width: 32%;
+		float:left;
+		text-align: center;
+		border-style: solid;
+		height:250px;
+		
+	}
+	
+	inputs
+	{
+		width:50%;
+		float:right;
+
+		height:100px;
+	}
+	
+	labels
+	{
+		float:left;
+		width:49%;
+		height:100px;
+
+
+	}
+	
+	lb
+	{
+		float:right;
+		height:24px;
+		width:100%;
+		text-align: right;
+		
+	}
+	
+	submission
+	{
+		text-align: center;
+	}
+	
+	searchButton
+	{
+		width:100px;
+		text-align: center;
+		vertical-align: middle;
+	}
+  </style>
+</head>
+<body>
+
+
+
+<div class="container" style="border-style:solid; width:100%">
+
+<div class="row">
+	<div class="col-sm-12">
+		<div class="jumbotron" style="border-style:solid">
+		<div class="container text-center">
+			<h1>Events foo</h1> 
+		</div>
+		</div>
+	</div>
+</div>
+ 
+<div class="row">
+<div class="row">
+	<div class="col-sm-2">
+		
+		
+		
+		
+		<div class="row">
+			<div class="col-sm-5">
+			
+			</div>
+			<div class="col-sm-2">
+			<button type="button" class="btn btn-primary" id ="searchButton" data-toggle="collapse" data-target="#search"><span class="glyphicon glyphicon-search"></span></button>
+			</div>
+			<div class="col-sm-5">
+			
+			</div>
+			
+		</div>
+		<br>
+		<div id="search" class="collapse">
+		<div class="row">
+			<div class="col-sm-6">
+			<lb>Title/Keyword:</lb><br>
+			<lb>After:</lb><br>
+			<lb>Before:</lb><br>
+			<lb>Third party events:</lb><br>
+			</div>
+			<div class="col-sm-6">
+			<input type="text" id="searchTitle" value="a"><br>
+			<input type="date" id="dateAfter"><br>
+			<input type="date" id="dateBefore" value="2018-12-12"><br>
+			<select id="includeThirdParty">
+				<option value="Yes">Include</option>
+		    	<option value="No">Do not</option>
+			</select>
+			</div>
+		</div>
+		<br>
+		<div class="row">
+			<div class="col-sm-6"></div>
+			<div class="col-sm-6"><button type="button" id="submitQuery">Search events</button></div>
+			
+			
+		</div>
+		</div>
+		
+		
+		
+
+	</div>
+
+	<div class="col-sm-8" >
+	<br>
+	<div id="eventsList">
+		<div class="col-sm-3">
+			<div class="panel panel-primary">
+				<div class="panel-heading">heading</div>
+				<div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
+				<div class="panel-footer">foots</div>
+			</div>
+		</div>
+		<div class="col-sm-3"> 
+			<div class="panel panel-primary">
+		   <div class="panel-heading">heading</div>
+			<div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
+			<div class="panel-footer">foots</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="col-sm-2" ></div>
+	</div>
+</div>
+<br>
+
+<br><br>
+</div>
+</body>
+</html>
