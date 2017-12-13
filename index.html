@@ -122,7 +122,7 @@ $(document).ready(function(){
 			console.log("were including third parties yay")
 			console.log("end date is"+endDate);
 			var dateRangeQuery="";
-			if (typeof(endDate)!="undefined")
+			if (typeof(endDate)!="undefined" && endDate!="")
 			{
 				var startDateString=new Date(Date.parse(startDate));
 				startDateString=startDateString.toISOString().slice(0,10).replace(/-/g,"")+"00";;
@@ -254,6 +254,21 @@ $(document).ready(function(){
 		$("#eventsList").html(eventsAsHTML);
 	}
 	
+	var venues = {}
+	$.get(baseURL+"/venues",function(data)
+	{
+		venues = data["venues"];
+	});
+	
+	
+	function getIcon(venue_id)
+	{
+		var venue=venues[venue_id]
+		console.log("venue is "+ JSON.stringify(venue));
+		console.log("venue.icon is "+venue.icon);
+		return('<img src="'+venue.icon+'" class="img-responsive" style="width:50%" alt="Image">')
+	}
+	
 	function eventToHTML(event)
 	{
 		console.log("converting event")
@@ -266,23 +281,17 @@ $(document).ready(function(){
 		
 		html += '</div> \r\n <div class="panel-body">'
 		
-		var venue={}
-		if (typeof(event.venue)!="undefined")
+		
+		if (typeof(event.venue_id)!="undefined")
 		{
-			$.get(baseURL+"/venues",function(data)
-			{
-				if (typeof(event.venue)!="undefined")
-				{
-				venue=data[event.venue]
-				html+='<img src="'+venue.icon+'" class="img-responsive" style="width:100%" alt="Image">'
-				}
-				else
-				{
-					console.log("for event the venue is not defined")
-				}
-			}
-			)
+			html+=getIcon(event.venue_id);
+			
 		}
+		else
+		{
+			console.log("for event the venue is not defined")
+		}
+		
 		html+='</div> \r\n <div class="panel-footer">'
 
 		if (typeof(event.blurb)!="undefined")
@@ -440,9 +449,9 @@ $(document).ready(function(){
 			<lb>Third party events:</lb><br>
 			</div>
 			<div class="col-sm-7">
-			<input type="text" id="searchTitle" value="a"><br>
+			<input type="text" id="searchTitle"><br>
 			<input type="date" id="dateAfter"><br>
-			<input type="date" id="dateBefore" value="2018-12-12"><br>
+			<input type="date" id="dateBefore"><br>
 			<select id="includeThirdParty">
 				<option value="Yes">Include</option>
 		    	<option value="No">Do not</option>
@@ -491,7 +500,7 @@ $(document).ready(function(){
 			</div>
 			<div class="col-sm-8">
 			<input type="text" id="username" value="admin"><br>
-			<input type="password" id="password" value="concertina"><br>
+			<input type="password" id="password"><br>
 			</div>
 		</div>
 		<br>
