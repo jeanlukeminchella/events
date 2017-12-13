@@ -17,7 +17,7 @@ $(document).ready(function(){
 	$("#test").click(function()
 	{
 		alert("omencing test");
-		$.get("http://api.eventful.com/json/events/search?authentication=KLMdRjKHvFNrWLxL&keywords=slaves",function(data)
+		$.get("https://api.eventful.com/json/events/search?authentication=KLMdRjKHvFNrWLxL&keywords=slaves",function(data)
 		{
 			alert(JSON.stringify(data));
 		});
