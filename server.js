@@ -38,7 +38,7 @@ function addUser(user)
 console.log('Server running at http://127.0.0.1:8080/');
 
 app.get("/", function(req, resp){
-	res.redirect('http://app.example.io');
+	resp.redirect(baseURL);
 });
 
 
