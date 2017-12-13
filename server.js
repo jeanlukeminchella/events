@@ -49,12 +49,7 @@ console.log('Server running at http://127.0.0.1:8080/');
 
 app.get('/', function(req, resp){
 	console.log("homepage sent" )
-	resp.sendFile(path.join(__dirname + "/indexBoots.html"))
-});
-
-app.get('/boots', function(req, resp){
-	console.log("homepage sent" )
-	resp.sendFile(path.join(__dirname + "/Boots.html"))
+	resp.sendFile(path.join(__dirname + "/index.html"))
 });
 
 app.get('/login/validate', function(req, resp){
@@ -63,10 +58,10 @@ app.get('/login/validate', function(req, resp){
 	resp.json({"isValid":isAuthorised(req.ip,req.query.auth_token)});
 });
 
-app.get('/login', function(req, resp){
+/* app.get('/login', function(req, resp){
 	console.log("login sent" )
 	resp.sendFile(path.join(__dirname + "/login.html"))
-});
+}); */
 
 app.post('/login/authenticate', function(req, resp){
 	var username = req.query.username;

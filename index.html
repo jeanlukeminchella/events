@@ -1,137 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Events</title>
-
-<style>
-	body
-	{
-		color:rgb(0,64,128)  ;
-		width: 81%;
-		position: absolute;
-		margin: 0 auto;
-		left: 10%;
-	}
-	
-	topBanner
-	{
-		background-color:rgb(102,204,0) ;
-		color:rgb(0,64,128)  ;
-		font-size:70pt;
-		text-align: center;
-		float:left;
-		width:100%;
-		
-		
-	}
-	a
-	{
-	font-size:15px;
-    position: absolute;
-    top: 5px;
-    right: 5px;
-
-	}
-	
-	form
-	{
-	
-	}
-	
-	eventsList
-	{
-	}
-	
-	event
-	{
-		width: 32%;
-		float:left;
-		text-align: center;
-		border-style: solid;
-		height:250px;
-		
-	}
-	
-	inputs
-	{
-		width:64%;
-		float:right;
-
-		height:100px;
-	}
-	
-	labels
-	{
-		float:left;
-		width:35%;
-		height:100px;
+  <title>Events yo</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script>
 
 
-	}
-	
-	lb
-	{
-		float:right;
-		height:24px;
-		width:100%;
-		text-align: right;
-		
-	}
-	
-	
+  $(document).ready(function(){
+  
 	
 	
 
-</style>
-</head>
-
-
-<body>
-<topBanner>
-<a href="" id="login">Login then u pleb</>
-</a>
-Events
-</topBanner>
-
-<h1>
-Please enter your search query:<br>
-</h1>
-<form id="eventSearch">
-<labels>
-<lb>Search your title:</lb><br>
-<lb>Enter date range: From</lb><br>
-<lb>To</lb><br>
-<lb>Include third party events:</lb>
-</labels>
-<inputs>
-<input type="text" id="searchTitle" value="a"><br>
-<input type="date" id="dateAfter"><br>
-<input type="date" id="dateBefore" value="2017-12-12"><br>
-<select id="includeThirdParty">
-	<option value="Yes">Yes</option>
-    <option value="No">No</option>
-</select>
-
-</inputs>
-<submission>
-<button type="button" id="submitQuery">Search events</button>
-
-<button id="externalAPICall" style="height:24px">add theird parties</button>
-</submission>
-</form>
-<button type="button" id="test">test</button>
-<div id="eventsList">
-</div>
-</body>
-
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script>
-
-
-	
-$(document).ready(function(){
-
-	var eventsToDisplay="";
+	var eventsToDisplay='{"events":[]}';
 	
 	console.log("doc ready");
 	
@@ -145,7 +29,7 @@ $(document).ready(function(){
 	);
 	
 	// neaten up
-	$("#login").click(function()
+	$("#loginButton").click(function()
 	{
 		console.log("loiguin in")
 		var cookie = document.cookie;
@@ -157,21 +41,37 @@ $(document).ready(function(){
 			{
 				window.location.assign("/admin?auth_token="+lastAuth_token);
 			}
-			else
-			{
-				window.location.assign("/login");
-			}
 		});
 		
 	});
+	
+	$("#submitLogin").click(function()
+	{
+		var loginURL = "/login/authenticate?username="+$("#username").val()+"&password="+$("#password").val()
+		
+		$.post(loginURL, function(data)
+		{
+			console.log("we tried to login this is what we got: "+JSON.stringify(data));
+			var newAuthToken = data.auth_token;
+			if(typeof(newAuthToken)!="undefined")
+			{
+				document.cookie="auth_token="+newAuthToken;
+				window.location.assign("/admin?auth_token="+newAuthToken);
+			}
+			else
+			{
+				alert("incorrecct username or password");
+			}
+		});
+	}
+	);
 
 	
 	
 	$("#submitQuery").click(function()
 	{
 	console.log("flow 1");
-	try
-	{
+	
 	console.log("flow 2");
 		var queryString = "/events/search";
 		
@@ -202,17 +102,30 @@ $(document).ready(function(){
 		console.log("enddate is "+endDate.toString());
 		
 		queryString+="?title="+$("#searchTitle").val()+"&dateAfter="+startDate+"&dateBefore="+endDate;
-
+		console.log("flow 4.2");
 		$.getJSON(queryString, function(data)
 		{
-			setEventsToDisplay(JSON.stringify(data));
+			console.log("flow 4.25");
+			console.log("we got "+JSON.stringify(data)+" from server");
+			if(data.events.length==0)
+			{
+				console.log("No such events!");
+			}
+			else
+			{
+				setEventsToDisplay(JSON.stringify(data));
+				updateEvents();
+			}
 		});
 		
 		if($("#includeThirdParty").val()=="Yes")
 		{
+			console.log("were including third parties yay")
+			console.log("end date is"+endDate);
 			var dateRangeQuery="";
 			if (typeof(endDate)!="undefined")
 			{
+				console.log("flow 4.3");
 				var startDateString=new Date(Date.parse(startDate));
 				startDateString=startDateString.toISOString().slice(0,10).replace(/-/g,"")+"00";;
 				var endDateString=new Date(Date.parse(endDate));
@@ -220,25 +133,25 @@ $(document).ready(function(){
 				var dateRangeQuery=startDateString+"-"+endDateString;
 				
 			}
+			console.log("flow 4.4");
 			
-			alert("date range query is "+dateRangeQuery);
 			
 			var searchTitle = $("#searchTitle").val();
+			console.log("flow 4.5");
 			
 			if (typeof(searchTitle)!="undefined")
 			{
 				searchTitle="";
 			}
+			
 		
 		}
 		
-		updateEvents()
 		
-	}
-	catch(err)
-	{
-		alert(err);
-	}
+		
+		
+	
+	
 		
 	console.log("flow 5");
 		
@@ -247,23 +160,32 @@ $(document).ready(function(){
 	
 	function setEventsToDisplay(text)
 	{
+		console.log("setting evetns to display as: "+text);
 		eventsToDisplay=text;
 	}
 	
 	// this must be in json form {"events":[]}
 	function addEventsToDisplay(text)
 	{
-		var currentEvents=JSON.parse(eventsToDisplay);
-		var newEvents=JSON.parse(text);
-		var allEvents = currentEvents.events;
-		for (i = 0; i < newEvents.length; i++) 
+		if (text=="" || typeof(text)=="undefined")
 		{
-    		allEvents.push(newEvents[i]);
-		};
-		eventsToDisplay =
-		{
-			"events":allEvents
+			console.log("tried to add evetns but nothing awas passwed in")
 		}
+		else
+		{
+			var currentEvents=JSON.parse(eventsToDisplay);
+			var newEvents=JSON.parse(text);
+			var allEvents = currentEvents.events;
+			for (i = 0; i < newEvents.length; i++) 
+			{
+	    		allEvents.push(newEvents[i]);
+			};
+			eventsToDisplay =
+			{
+				"events":allEvents
+			}
+		}
+		
 	}
 	
 	function updateEvents()
@@ -287,13 +209,34 @@ $(document).ready(function(){
 	function eventToHTML(event)
 	{
 		console.log("converting event")
-		html = "<event> \r\n";
+		html = '<div class="col-sm-3"> \r\n <div class="panel panel-primary"> \r\n  <div class="panel-heading">'
 		
 		if (typeof(event.title)!="undefined")
 		{
-		html += "<titleOfEvent>"+event.title+"</titleOfEvent> <br>\r\n"
+		html += event.title
 		}
 		
+		html += '</div> \r\n <div class="panel-body">'
+		
+		var venue={}
+		if (typeof(event.venue)!="undefined")
+		{
+			$.get("./venues",function(data)
+			{
+				if (typeof(event.venue)!="undefined")
+				{
+				venue=data[event.venue]
+				html+='<img src="'+venue.icon+'" class="img-responsive" style="width:100%" alt="Image">'
+				}
+				else
+				{
+					console.log("for event the venue is not defined")
+				}
+			}
+			)
+		}
+		html+='</div> \r\n <div class="panel-footer">'
+
 		if (typeof(event.blurb)!="undefined")
 		{
 		html += "<blurbOfEvent>"+event.blurb+"</blurbOfEvent> <br>\r\n"
@@ -306,15 +249,14 @@ $(document).ready(function(){
 		
 		if (typeof(event.url)!="undefined")
 		{
-		html += "<urlOfEvent>"+event.url+"</urlOfEvent> <br>\r\n"
+		html += '<a href="'+event.url+'">'+event.url.toString()+'</a> <br>\r\n'
 		}
 		
-		if (typeof(event.venue)!="undefined")
-		{
-		html += "<venueOfEvent>"+event.venue+"</venueOfEvent> <br>\r\n"
-		}
+		html+="</div>\r\n"
 		
-		return (html+"</event>");
+		
+		console.log("we just made this html: "+html)
+		return (html);
 		
 	
 	}
@@ -324,10 +266,165 @@ $(document).ready(function(){
 	
 	
 	}); 
+
+ </script>
+  
+  <style>
+    .jumbotron 
+	{
+		margin-bottom: 0;
+    }
+   
+
 	
+	lb
+	{
+		float:right;
+		height:24px;
+		width:100%;
+		text-align: right;
+		
+	}
 	
+	submission
+	{
+		text-align: center;
+	}
 	
+	searchButton
+	{
+		width:100px;
+		text-align: center;
+		vertical-align: middle;
+	}
+  </style>
+</head>
+<body>
+
+
+
+<div class="container" width:100%">
+
+<div class="row">
+	<div class="col-sm-12">
+		<div class="jumbotron" >
+		<div class="container text-center">
+			<h1>Events yo</h1> 
+		</div>
+		</div>
+	</div>
+</div>
+ 
+<div class="row">
+
+	<div class="col-sm-3" >
+
+		<div class="row">
+			<div class="col-sm-5">
+			
+			</div>
+			<div class="col-sm-2">
+			<button type="button" class="btn btn-primary" id ="searchButton" data-toggle="collapse" data-target="#search"><span class="glyphicon glyphicon-search"></span></button>
+			</div>
+			<div class="col-sm-5">
+			
+			</div>
+			
+		</div>
+		<br>
+		<div id="search" class="collapse">
+		<div class="row">
+			<div class="col-sm-4">
+			<lb>Title/Keyword:</lb><br>
+			<lb>After:</lb><br>
+			<lb>Before:</lb><br>
+			<lb>Third party events:</lb><br>
+			</div>
+			<div class="col-sm-7">
+			<input type="text" id="searchTitle" value="a"><br>
+			<input type="date" id="dateAfter"><br>
+			<input type="date" id="dateBefore" value="2018-12-12"><br>
+			<select id="includeThirdParty">
+				<option value="Yes">Include</option>
+		    	<option value="No">Do not</option>
+			</select>
+			</div>
+			<div class="col-sm-1">
+			
+			</div>
+		</div>
+		<br>
+		<div class="row">
+			<div class="col-sm-4"></div>
+			<div class="col-sm-8"><button type="button" id="submitQuery">Search events</button></div>
+		</div>
+		</div>
+		
+		
+
+	</div>
+
+	<div class="col-sm-6" >
+	<br>
+	<div id="eventsList" >
+		<div class="col-sm-3">
+			<div class="panel panel-primary">
+				<div class="panel-heading">heading</div>
+				<div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
+				<div class="panel-footer">foots</div>
+			</div>
+		</div>
+		<div class="col-sm-3"> 
+			<div class="panel panel-primary">
+		   <div class="panel-heading">heading</div>
+			<div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
+			<div class="panel-footer">foots</div>
+			</div>
+		</div>
+	</div>
+	</div>
 	
+	<div class="col-sm-3" >
 	
-</script>
+		<div class="row" >
+			<div class="col-sm-4">
+			</div>
+			<div class="col-sm-2">
+			<button type="button" class="btn btn-primary" id ="loginButton" data-toggle="collapse" data-target="#login">Login</button>
+			</div>
+			<div class="col-sm-6">
+			
+			</div>
+			
+		</div>
+		<br>
+		<div id="login" class="collapse">
+		<div class="row">
+			<div class="col-sm-4">
+			<lb>Username:</lb><br>
+			<lb>Password</lb><br>
+			</div>
+			<div class="col-sm-8">
+			<input type="text" id="username" value="admin"><br>
+			<input type="password" id="password" value="concertina"><br>
+			</div>
+		</div>
+		<br>
+		<div class="row">
+			<div class="col-sm-6"></div>
+			<div class="col-sm-6"><button type="button" id="submitLogin">Login</button></div>
+		</div>
+		</div>
+		
+		
+		
+
+	</div>
+</div>
+
+<br>
+
+<br><br>
+</div>
+</body>
 </html>

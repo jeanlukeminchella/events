@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Events</title>
+
+<style>
+	body
+	{
+		color:rgb(0,64,128)  ;
+		width: 81%;
+		position: absolute;
+		margin: 0 auto;
+		left: 10%;
+	}
+	
+	topBanner
+	{
+		background-color:rgb(102,204,0) ;
+		color:rgb(0,64,128)  ;
+		font-size:70pt;
+		text-align: center;
+		float:left;
+		width:100%;
+		
+		
+	}
+	a
+	{
+	font-size:15px;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+
+	}
+	
+	form
+	{
+	
+	}
+	
+	eventsList
+	{
+	}
+	
+	event
+	{
+		width: 32%;
+		float:left;
+		text-align: center;
+		border-style: solid;
+		height:250px;
+		
+	}
+	
+	inputs
+	{
+		width:64%;
+		float:right;
+
+		height:100px;
+	}
+	
+	labels
+	{
+		float:left;
+		width:35%;
+		height:100px;
+
+
+	}
+	
+	lb
+	{
+		float:right;
+		height:24px;
+		width:100%;
+		text-align: right;
+		
+	}
+	
+	
+	
+	
+
+</style>
+</head>
+
+
+<body>
+<topBanner>
+<a href="" id="login">Login then u pleb</>
+</a>
+Events
+</topBanner>
+
+<h1>
+Please enter your search query:<br>
+</h1>
+<form id="eventSearch">
+<labels>
+<lb>Search your title:</lb><br>
+<lb>Enter date range: From</lb><br>
+<lb>To</lb><br>
+<lb>Include third party events:</lb>
+</labels>
+<inputs>
+<input type="text" id="searchTitle" value="a"><br>
+<input type="date" id="dateAfter"><br>
+<input type="date" id="dateBefore" value="2017-12-12"><br>
+<select id="includeThirdParty">
+	<option value="Yes">Yes</option>
+    <option value="No">No</option>
+</select>
+
+</inputs>
+<submission>
+<button type="button" id="submitQuery">Search events</button>
+
+<button id="externalAPICall" style="height:24px">add theird parties</button>
+</submission>
+</form>
+<button type="button" id="test">test</button>
+<div id="eventsList">
+</div>
+</body>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script>
+
+
+	
+$(document).ready(function(){
+
+	var eventsToDisplay="";
+	
+	console.log("doc ready");
+	
+	$("#test").click(function()
+	{
+		document.cookie = "auth_token=weee"
+		alert(document.cookie)
+		alert(document.cookie)
+		
+	}
+	);
+	
+	// neaten up
+	$("#login").click(function()
+	{
+		console.log("loiguin in")
+		var cookie = document.cookie;
+		var lastAuth_token = cookie.replace("auth_token=","");
+		var lastAuth_tokenValid=false
+		$.getJSON("/login/validate?auth_token="+lastAuth_token, function(data)
+		{
+			if (data.isValid)
+			{
+				window.location.assign("/admin?auth_token="+lastAuth_token);
+			}
+			else
+			{
+				window.location.assign("/login");
+			}
+		});
+		
+	});
+
+	
+	
+	$("#submitQuery").click(function()
+	{
+	console.log("flow 1");
+	try
+	{
+	console.log("flow 2");
+		var queryString = "/events/search";
+		
+		if(dateAfter>dateBefore)
+		{
+			throw "Please enter a valid date range"
+		}
+		
+		
+		var startDate;
+		if ($("#dateAfter").val()=="")
+		{
+			console.log("flow 3");
+			startDate = new Date();
+		}
+		else
+		{
+			console.log("flow 3.1");
+			startDate = $("#dateAfter").val();
+		}
+		console.log("startdate is "+startDate.toString());
+		
+		var endDate;
+		
+		console.log("flow 4.1");
+		endDate = $("#dateBefore").val();
+		
+		console.log("enddate is "+endDate.toString());
+		
+		queryString+="?title="+$("#searchTitle").val()+"&dateAfter="+startDate+"&dateBefore="+endDate;
+
+		$.getJSON(queryString, function(data)
+		{
+			setEventsToDisplay(JSON.stringify(data));
+		});
+		
+		if($("#includeThirdParty").val()=="Yes")
+		{
+			var dateRangeQuery="";
+			if (typeof(endDate)!="undefined")
+			{
+				var startDateString=new Date(Date.parse(startDate));
+				startDateString=startDateString.toISOString().slice(0,10).replace(/-/g,"")+"00";;
+				var endDateString=new Date(Date.parse(endDate));
+				endDateString=endDateString.toISOString().slice(0,10).replace(/-/g,"")+"00";
+				var dateRangeQuery=startDateString+"-"+endDateString;
+				
+			}
+			
+			alert("date range query is "+dateRangeQuery);
+			
+			var searchTitle = $("#searchTitle").val();
+			
+			if (typeof(searchTitle)!="undefined")
+			{
+				searchTitle="";
+			}
+		
+		}
+		
+		updateEvents()
+		
+	}
+	catch(err)
+	{
+		alert(err);
+	}
+		
+	console.log("flow 5");
+		
+	
+	}); 
+	
+	function setEventsToDisplay(text)
+	{
+		eventsToDisplay=text;
+	}
+	
+	// this must be in json form {"events":[]}
+	function addEventsToDisplay(text)
+	{
+		var currentEvents=JSON.parse(eventsToDisplay);
+		var newEvents=JSON.parse(text);
+		var allEvents = currentEvents.events;
+		for (i = 0; i < newEvents.length; i++) 
+		{
+    		allEvents.push(newEvents[i]);
+		};
+		eventsToDisplay =
+		{
+			"events":allEvents
+		}
+	}
+	
+	function updateEvents()
+	{
+		console.log("updatin events: "+eventsToDisplay)
+		var eventsAsArray = JSON.parse(eventsToDisplay).events;
+		var numberOfEvents = eventsAsArray.length;
+		
+		
+		
+		var eventsAsHTML = "";
+		
+		for (var i = 0 ; i < numberOfEvents ; i++)
+		{
+			eventsAsHTML += eventToHTML (eventsAsArray[i]);
+		}
+		
+		$("#eventsList").html(eventsAsHTML);
+	}
+	
+	function eventToHTML(event)
+	{
+		console.log("converting event")
+		html = "<event> \r\n";
+		
+		if (typeof(event.title)!="undefined")
+		{
+		html += "<titleOfEvent>"+event.title+"</titleOfEvent> <br>\r\n"
+		}
+		
+		if (typeof(event.blurb)!="undefined")
+		{
+		html += "<blurbOfEvent>"+event.blurb+"</blurbOfEvent> <br>\r\n"
+		}
+		
+		if (typeof(event.date)!="undefined")
+		{
+		html += "<dateOfEvent>"+event.date+"</dateOfEvent> <br>\r\n"
+		}
+		
+		if (typeof(event.url)!="undefined")
+		{
+		html += "<urlOfEvent>"+event.url+"</urlOfEvent> <br>\r\n"
+		}
+		
+		if (typeof(event.venue)!="undefined")
+		{
+		html += "<venueOfEvent>"+event.venue+"</venueOfEvent> <br>\r\n"
+		}
+		
+		return (html+"</event>");
+		
+	
+	}
+
+	
+	
+	
+	
+	}); 
+	
+	
+	
+	
+	
+</script>
+</html>

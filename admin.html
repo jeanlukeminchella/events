@@ -2,32 +2,35 @@
 <html>
 <head>
 <title>Admin</title>
-
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 <style>
-	body
-	{
-		color:rgb(0,64,128)  ;
-		width: 80%;
-		position: absolute;
-		margin: 0 auto;
-		left: 10%;
-	}
-	
-	topBanner
-	{
-		background-color:rgb(102,204,0) ;
-		color:rgb(0,64,128)  ;
-		font-size:70pt;
-		text-align: center;
-		float:left;
-		width:100%;
-		
-		
-	}
 	
 	form
 	{
 		padding: 1em;
+	}
+	
+	lb
+	{
+		float:right;
+		height:26px;
+		width:100%;
+		text-align: right;
+		padding-top:2px;
+
+
+		
+	}
+	
+	
+	
+	submission
+	{
+		text-align: center;
 	}
 
 </style>
@@ -38,32 +41,74 @@
 
 
 <body>
-<topBanner>
-Events
-</topBanner>
+<div class="container" style="width:100%">
 
-Add event<br>
-
-<input type="text" name="event_id" id="Eevent_id">event_id<br>
-<input type="text" name="title" id="Etitle">title<br>
-<input type="text" name="venue" id="Evenue">venue<br>
-<input type="date" name="date" id="Edate">date<br>
-<input type="text" name="url" id="Eurl">url<br>
-<input type="text" name="blurb" id="Eblurb">blurb<br>
-<button id="submitEvent">Submit</button>
-
-<br><br>
-Add venue<br>
-
-<input type="text" id="Vname">name<br>
-<input type="text" id="Vpostcode">postcode<br>
-<input type="text" id="Vtown">town<br>
-<input type="text" id="Vurl">url<br>
-<input type="text" id="Vicon">icon<br>
-<button id="submitVenue">Submit</button>
+<div class="row">
+	<div class="col-sm-12">
+		<div class="jumbotron" >
+		<div class="container text-center">
+			<h1>Events yo</h1> 
+		</div>
+		</div>
+	</div>
+</div>
+ 
+<div class="row">
+	<div class="col-sm-2">
+	</div>
+	<div class="col-sm-3">
+		<div class="col-sm-6">
+			<lb>event_id<br></lb>
+			<lb>title<br></lb>
+			<lb>venue<br></lb>
+			<lb>date<br></lb>
+			<lb>url<br></lb>
+			<lb>blurb<br></lb>
+		</div>
+		<div class="col-sm-6" id="inputs">
+		<input type="text" name="event_id" id="Eevent_id"><br>
+		<input type="text" name="title" id="Etitle"><br>
+		<input type="text" name="venue" id="Evenue"><br>
+		<input type="date" name="date" id="Edate"><br>
+		<input type="text" name="url" id="Eurl"><br>
+		<input type="text" name="blurb" id="Eblurb"><br>
+		<button id="submitEvent">Add Event</button>
+		</div>
+	</div>
+	<div class="col-sm-3">
+		<div class="col-sm-6">
+			<lb>name<br></lb>
+			<lb>postcode<br></lb>
+			<lb>town<br></lb>
+			<lb>url<br></lb>
+			<lb>icon<br></lb>
+		</div>
+		<div class="col-sm-6" id="inputs">
+			<input type="text" id="Vname"><br>
+			<input type="text" id="Vpostcode"><br>
+			<input type="text" id="Vtown"><br>
+			<input type="text" id="Vurl"><br>
+			<input type="text" id="Vicon"><br><br>
+			<button id="submitVenue">Add Venue</button>
+		</div>
+	</div>
+	<div class="col-sm-4">
+	</div>
+</div>
 <br>
-<br>
-<button id="reset">reset</button>
+<div class="row">
+<div class="col-sm-5">
+</div>
+<div class="col-sm-2">
+
+	<button type="button" class="btn btn-primary" id ="home"><span class="glyphicon glyphicon-home"></</button>
+	<button type="button" class="btn btn-primary" id ="reset">Reset</</button>
+</div>
+<div class="col-sm-5">
+</div>
+</div>
+
+
 </body>
 
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -77,7 +122,13 @@ Add venue<br>
 			
 			$.post("/resetEvents");
 			$.post("/resetVenues");
-		}); 
+		});
+
+		$("#home").click(function()
+		{
+			window.location.assign("/");
+			
+		}); 		
 		
 		$("#submitVenue").click(function()
 		{
