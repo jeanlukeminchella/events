@@ -97,16 +97,27 @@
 </div>
 <br>
 <div class="row">
-<div class="col-sm-5">
-</div>
-<div class="col-sm-2">
+	<div class="col-sm-5">
+	</div>
+	<div class="col-sm-2">
 
-	<button type="button" class="btn btn-primary" id ="home"><span class="glyphicon glyphicon-home"></</button>
-	<button type="button" class="btn btn-primary" id ="reset">Reset</</button>
+		<button type="button" class="btn btn-primary" id ="home"><span class="glyphicon glyphicon-home"></</button>
+		<button type="button" class="btn btn-primary" id ="reset">Reset</</button>
+		<button type="button" class="btn btn-primary" id ="showVenues" data-toggle="collapse" data-target="#showVenues">Show Venues</button>
+	</div>
+	<div class="col-sm-5">
+	</div>
 </div>
-<div class="col-sm-5">
+<br>
+<div class="row">
+<div class="col-sm-1"></div>
+<div class="col-sm-10" id="venuesDisplay" class="collapse">
+
 </div>
+<div class="col-sm-1"></div>
+
 </div>
+
 
 
 </body>
@@ -130,6 +141,27 @@
 			
 		}); 		
 		
+		$("#showVenues").click(function()
+		{
+			$.get("/venues",function(data)
+			
+			{
+				var newHtml = "";
+				var venueIDs = Object.keys(data.venues);
+				for (var i =0; i<venueIDs.length; i++)
+				{
+					var venue = data.venues[venueIDs[i]];
+					var venueID = venueIDs[i];
+					newHtml = newHtml + venueToHtml(venueID,venue);
+				}
+				$("#venuesDisplay").html(newHtml);
+			}
+			
+			);
+			
+		});
+		
+		
 		$("#submitVenue").click(function()
 		{
 			console.log("submitign form");
@@ -152,7 +184,14 @@
 				+ "icon="+ newVenue.icon
 				
 			console.log("post url:"+url);
-			$.post(url);
+			$.post(url, function(data)
+			{
+			if(data.status=="ok")
+			{
+				alert("submitted!");
+			}	
+			}
+			);
 		}); 
 		
 		$("#submitEvent").click(function()
@@ -170,7 +209,7 @@
 			}
 			
 			url = "/events/add?" 
-				+ "auth_token=" + auth_token +  "&"+
+				+ "auth_token=" + auth_token +  "&"
 				+ "event_id=" + newEvent.event_id + "&"
 				+ "title="+ newEvent.title + "&"
 				+ "venue_id="+ newEvent.venue_id + "&"
@@ -180,9 +219,52 @@
 
 			console.log("post url:"+url);
 			$.post(url,"", function(data) {
-			alert(JSON.stringify(data));    
+			if(data.status=="ok")
+			{
+				alert("submitted!");
+			}			
 			});
 		});
+		
+		function venueToHtml(venue_id, venue)
+		{
+			html = '<div class="col-sm-6"> \r\n <div class="panel panel-primary"> \r\n  <div class="panel-heading">'
+		
+		if (typeof(venue.name)!="undefined")
+		{
+		html += venue.name;
+		}
+		
+		html += '</div> \r\n <div class="panel-body">'
+		
+		
+		html+='<img src="'+venue.icon+'" class="img-responsive" style="width:100%" alt="Image">'
+			
+		html+='</div> \r\n <div class="panel-footer">'
+
+		if (typeof(venue.postcode)!="undefined")
+		{
+		html += venue.postcode+" <br>\r\n"
+		}
+		
+		if (typeof(venue.town)!="undefined")
+		{
+		html += venue.town+" <br>\r\n"
+		}
+		
+		if (typeof(venue.url)!="undefined")
+		{
+		html += '<a href="'+venue.url+'">'+venue.url.toString()+'</a> <br>\r\n'
+		}
+		
+		html+="</div>\r\n";
+		html+="</div>\r\n";
+		html+="</div>\r\n";
+		
+		
+		console.log("we just made this html: "+html)
+		return (html);
+		}
 		
 		
 	}); 

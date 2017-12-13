@@ -14,15 +14,29 @@ $(document).ready(function(){
 	var eventsToDisplay='{"events":[]}';
 	console.log("doc ready");
 	
-	$("#test").click(function()
+	
+	function xmlValue(xmlString, character)
 	{
-		alert("omencing test");
-		$.get("https://api.eventful.com/json/events/search?authentication=KLMdRjKHvFNrWLxL&keywords=slaves",function(data)
+	
+		console.log("xml, char is ");
+		console.log(xmlString);
+		console.log(character);
+		var opener = "<"+character+">";
+		var closer = "</"+character+">";
+		var startIndex = xmlString.indexOf(opener);
+		var endIndex = xmlString.indexOf(closer);
+
+		if (startIndex==-1 || endIndex==-1)
 		{
-			alert(JSON.stringify(data));
-		});
+			return "(error: xml property not found)"
+		}
+		else
+		{
+			return xmlString.substring(startIndex+2+character.length,endIndex);
+		}
+		
 	}
-	);
+	
 	
 	$("#loginButton").click(function()
 	{
@@ -63,42 +77,32 @@ $(document).ready(function(){
 	
 	$("#submitQuery").click(function()
 	{
-	console.log("flow 1");
-	
-	console.log("flow 2");
 		var queryString = "/events/search";
 		
-		if(dateAfter>dateBefore)
-		{
-			throw "Please enter a valid date range"
-		}
-		
-		
+	if(dateAfter>dateBefore)
+	{
+		alert("Please enter a valid date range");
+	}
+	else
+	{
+			
 		var startDate;
 		if ($("#dateAfter").val()=="")
 		{
-			console.log("flow 3");
 			startDate = new Date();
 		}
 		else
 		{
-			console.log("flow 3.1");
 			startDate = $("#dateAfter").val();
 		}
 		console.log("startdate is "+startDate.toString());
 		
 		var endDate;
-		
-		console.log("flow 4.1");
 		endDate = $("#dateBefore").val();
-		
-		console.log("enddate is "+endDate.toString());
-		
+
 		queryString+="?title="+$("#searchTitle").val()+"&dateAfter="+startDate+"&dateBefore="+endDate;
-		console.log("flow 4.2");
 		$.getJSON(queryString, function(data)
 		{
-			console.log("flow 4.25");
 			console.log("we got "+JSON.stringify(data)+" from server");
 			if(data.events.length==0)
 			{
@@ -118,7 +122,6 @@ $(document).ready(function(){
 			var dateRangeQuery="";
 			if (typeof(endDate)!="undefined")
 			{
-				console.log("flow 4.3");
 				var startDateString=new Date(Date.parse(startDate));
 				startDateString=startDateString.toISOString().slice(0,10).replace(/-/g,"")+"00";;
 				var endDateString=new Date(Date.parse(endDate));
@@ -126,36 +129,88 @@ $(document).ready(function(){
 				var dateRangeQuery=startDateString+"-"+endDateString;
 				
 			}
-			console.log("flow 4.4");
 			
 			
 			var searchTitle = $("#searchTitle").val();
-			console.log("flow 4.5");
 			
 			if (typeof(searchTitle)!="undefined")
 			{
 				searchTitle="";
 			}
 			
-			
+			var xmlReturned = ""
 		
+			var xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function()
+			{
+				if (this.readyState == 4 && this.status == 200)
+				{
+					parser = new DOMParser();
+					xmlReturned = parser.parseFromString(this.responseText,"text/xml");
+					// alert(parseInt(xmlReturned.getElementsByTagName("total_items")[0].childNodes[0].nodeValue));
+					var eventArray=xmlReturned.getElementsByTagName("events")[0];
+					
+					var eventsChildren=xmlReturned.getElementsByTagName("events")[0].childNodes;
+					
+					var externalEvents = [];
+					
+					for (var i=0; i<xmlReturned.getElementsByTagName("events")[0].childNodes.length;i++)
+					{
+						try
+						{
+							var evnt=xmlReturned.getElementsByTagName("events")[0].childNodes[i];
+							var eventAsString=(new XMLSerializer()).serializeToString(evnt);
+							console.log(eventAsString);
+							
+							if(!(/^\s+$/.test(eventAsString)))
+							{
+							
+							
+								var externalEventAsJson=
+								{
+									"title":xmlValue(eventAsString,"title"),
+									"url":xmlValue(eventAsString,"url"),
+									"blurb":xmlValue(eventAsString,"description"),
+									"date":xmlValue(eventAsString,"description"),
+									"img":xmlValue(xmlValue(eventAsString,"image"),"url")
+								}
+									
+								externalEvents.push(externalEventAsJson);
+								
+								//console.log("we got "+JSON.stringify(externalEventAsJson)+ "extra event");
+							}
+							
+						
+						}
+						catch(err)
+						{
+							//console.log("unsuitabe event:"+err);
+						}
+					}
+					displayExternalEvents(externalEvents)
+				}
+			};
+			xhttp.open("GET", "https://api.eventful.com/rest/events/search?app_key=KLMdRjKHvFNrWLxL&location=uk&"+"date="+dateRangeQuery+"&keywords="+searchTitle, true);
+			xhttp.send();
 		}
-		
-		
-		
-		
-	
-	
-		
-	console.log("flow 5");
-		
-	
+	}
 	}); 
 	
 	function setEventsToDisplay(text)
 	{
 		console.log("setting evetns to display as: "+text);
 		eventsToDisplay=text;
+	}
+	
+	function displayExternalEvents(events)
+	{
+		console.log("displaying external events");
+		var currentEventList = $("#eventsList").html();
+		for (var i = 0 ; i < events.length ; i++)
+		{
+			currentEventList += externalEventToHTML(events[i]);
+		}
+		$("#eventsList").html(currentEventList);
 	}
 	
 	// this must be in json form {"events":[]}
@@ -203,7 +258,7 @@ $(document).ready(function(){
 	function eventToHTML(event)
 	{
 		console.log("converting event")
-		html = '<div class="col-sm-3"> \r\n <div class="panel panel-primary"> \r\n  <div class="panel-heading">'
+		html = '<div class="col-sm-6"> \r\n <div class="panel panel-primary"> \r\n  <div class="panel-heading">'
 		
 		if (typeof(event.title)!="undefined")
 		{
@@ -255,7 +310,49 @@ $(document).ready(function(){
 	
 	}
 
+	function externalEventToHTML(event)
+	{
+		console.log("converting event")
+		html = '<div class="col-sm-6"> \r\n <div class="panel panel-primary"> \r\n  <div class="panel-heading">'
+		
+		if (event.title!="(error: xml property not found)")
+		{
+		html += event.title
+		}
+		
+		html += '</div> \r\n <div class="panel-body">'
+		
+		if (event.img!="(error: xml property not found)")
+		{
+			html+='<img src="'+event.img+'" class="img-responsive" style="width:100%" alt="Image">'
+		}
+		html+='</div> \r\n <div class="panel-footer">'
+
+		if (event.blurb!="(error: xml property not found)")
+		{
+		html += "<blurbOfEvent>"+event.blurb.substring(0,25)+"</blurbOfEvent> <br>\r\n"
+		}
+		
+		if (event.date!="(error: xml property not found)")
+		{
+		html += "<dateOfEvent>"+event.date.substring(0,25)+"</dateOfEvent> <br>\r\n"
+		}
+		
+		if (event.url!="(error: xml property not found)")
+		{
+		html += '<a href="'+event.url+'">'+event.url.toString()+'</a> <br>\r\n'
+		}
+		
+		html+="</div>\r\n";
+		html+="</div>\r\n";
+		html+="</div>\r\n";
+		
+		
+		console.log("we just made this html: "+html)
+		return (html);
+		
 	
+	}
 	
 	
 	
@@ -299,13 +396,12 @@ $(document).ready(function(){
 </head>
 <body>
 
+<div id="demo">
+</div>
 
 
 <div class="container" id="container">
 
-<button type="button"  id="test">
-yeah i exist aye
-</button>
 
 <div class="row">
 	<div class="col-sm-12">
@@ -369,7 +465,7 @@ yeah i exist aye
 	<div class="col-sm-6" >
 	<br>
 	<div id="eventsList" >
-		<div class="col-sm-3">
+		<!-- <div class="col-sm-3">
 			<div class="panel panel-primary">
 				<div class="panel-heading">heading</div>
 				<div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
@@ -382,7 +478,7 @@ yeah i exist aye
 			<div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
 			<div class="panel-footer">foots</div>
 			</div>
-		</div>
+		</div> -->
 	</div>
 	</div>
 	

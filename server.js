@@ -100,7 +100,9 @@ app.get('/admin', function(req, resp){
 
 app.get('/venues', function(req, res){
 	res.setHeader('content-type', 'application/json');
-	resp.sendFile(path.join(__dirname+"venues.json"))});
+	res.send(venues);
+	// res.sendFile(path.join(__dirname+"venues.json"))
+	});
 
 app.get('/events/search', function(req, res){
 	
@@ -385,13 +387,14 @@ function isAuthorised(ip,auth_token)
 		}
 		else
 		{
-			if((currentDate-Date.parse(lastLoginFromIP[1]))>7200000000)
+			if((currentDate-lastLoginFromIP[1])>7200000)
 			{
 				console.log("older than 2 hours")
 				return false
 			}
 			else
 			{
+				
 				return true;
 			}
 		}
