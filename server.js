@@ -353,6 +353,7 @@ function resetEvents()
 {
 	console.log("resetting Events")
 	events = {"events":[{"event_id":"e_1","title":"Jazz guitar off","venue_id":"v_1","date":"2018-4-4","url":"http://www.guitar.com/","blurb":"it'll be jazz great"}]};
+	venues = {"venues":{"v_1":{"name":"City Hall","postcode":"ne297th","town":"Newcastle","url":"www.cityhall.com","icon":"http://media.ticketmaster.co.uk/tm/en-gb/dbimages/2477v.jpg"},"v_2":{"name":"Metro Radio","postcode":"ne297gj","town":"Newcastle","url":"www.metro.com","icon":"https://eurohostels.s3.amazonaws.com/uploads/2016/03/Metro-Radio-Arena.jpg"}}};
 	
 }
 

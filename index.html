@@ -9,29 +9,23 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script>
 
-
-  $(document).ready(function(){
-  
-	
-	
+$(document).ready(function(){
 
 	var eventsToDisplay='{"events":[]}';
-	
 	console.log("doc ready");
 	
 	$("#test").click(function()
 	{
-		document.cookie = "auth_token=weee"
-		alert(document.cookie)
-		alert(document.cookie)
-		
+		alert("omencing test");
+		$.get("http://api.eventful.com/json/events/search?authentication=KLMdRjKHvFNrWLxL&keywords=slaves",function(data)
+		{
+			alert(JSON.stringify(data));
+		});
 	}
 	);
 	
-	// neaten up
 	$("#loginButton").click(function()
 	{
-		console.log("loiguin in")
 		var cookie = document.cookie;
 		var lastAuth_token = cookie.replace("auth_token=","");
 		var lastAuth_tokenValid=false
@@ -42,7 +36,6 @@
 				window.location.assign("/admin?auth_token="+lastAuth_token);
 			}
 		});
-		
 	});
 	
 	$("#submitLogin").click(function()
@@ -143,6 +136,7 @@
 			{
 				searchTitle="";
 			}
+			
 			
 		
 		}
@@ -275,7 +269,11 @@
 		margin-bottom: 0;
     }
    
-
+	container
+	{
+		width:100%;
+	}
+	
 	
 	lb
 	{
@@ -303,7 +301,11 @@
 
 
 
-<div class="container" width:100%">
+<div class="container" id="container">
+
+<button type="button"  id="test">
+yeah i exist aye
+</button>
 
 <div class="row">
 	<div class="col-sm-12">
