@@ -47,7 +47,7 @@
 	<div class="col-sm-12">
 		<div class="jumbotron" >
 		<div class="container text-center">
-			<h1>Events yo</h1> 
+			<h1>Admin yo</h1> 
 		</div>
 		</div>
 	</div>
@@ -126,24 +126,25 @@
 <script>
 	$(document).ready(function()
 	{
+		var baseURL = "/events2017";
 		var auth_token=document.cookie.toString().substring(11);
 		
 		$("#reset").click(function()
 		{
 			
-			$.post("/resetEvents");
-			$.post("/resetVenues");
+			$.post(baseURL+"/resetEvents");
+			$.post(baseURL+"/resetVenues");
 		});
 
 		$("#home").click(function()
 		{
-			window.location.assign("/");
+			window.location.assign(baseURL+"/");
 			
 		}); 		
 		
 		$("#showVenues").click(function()
 		{
-			$.get("/venues",function(data)
+			$.get(baseURL+"/venues",function(data)
 			
 			{
 				var newHtml = "";
@@ -184,7 +185,7 @@
 				+ "icon="+ newVenue.icon
 				
 			console.log("post url:"+url);
-			$.post(url, function(data)
+			$.post(baseURL+url, function(data)
 			{
 			if(data.status=="ok")
 			{
@@ -218,7 +219,7 @@
 				+ "blurb="+ newEvent.blurb
 
 			console.log("post url:"+url);
-			$.post(url,"", function(data) {
+			$.post(baseURL+url,"", function(data) {
 			if(data.status=="ok")
 			{
 				alert("submitted!");

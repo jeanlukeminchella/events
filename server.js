@@ -15,6 +15,7 @@ addUser(admin);
 var events={"events":[]};
 var venues={};
 
+var baseURL = "/events2017";
 
 
 function addUser(user)
@@ -34,25 +35,20 @@ function addUser(user)
 
 
 
-var server = http.createServer(function (req, resp) {
-    
-	fs.readFile("index.html", function (error, pgResp) {
-	resp.writeHead(200);
-	resp.write(pgResp);
-	resp.end();
-	});
-    
-}); 
-
 console.log('Server running at http://127.0.0.1:8080/');
 
 
-app.get('/', function(req, resp){
+app.get(baseURL, function(req, resp){
 	console.log("homepage sent" )
 	resp.sendFile(path.join(__dirname + "/index.html"))
 });
 
-app.get('/login/validate', function(req, resp){
+app.get(baseURL+"/index.html", function(req, resp){
+	console.log("homepage sent" )
+	resp.sendFile(path.join(__dirname + "/index.html"))
+});
+
+app.get(baseURL+'/login/validate', function(req, resp){
 	
 	console.log(req.ip);
 	resp.json({"isValid":isAuthorised(req.ip,req.query.auth_token)});
@@ -63,7 +59,7 @@ app.get('/login/validate', function(req, resp){
 	resp.sendFile(path.join(__dirname + "/login.html"))
 }); */
 
-app.post('/login/authenticate', function(req, resp){
+app.post(baseURL+'/login/authenticate', function(req, resp){
 	var username = req.query.username;
 	console.log("authenticating user with username:"+username+" password:"+req.query.password )
 	console.log("their password is secretly:" + users[username]);
@@ -86,7 +82,7 @@ function authoriseToken(auth_token, ipAddress)
 }
 
 
-app.get('/admin', function(req, resp){
+app.get(baseURL+'/admin', function(req, resp){
 	if(isAuthorised(req.ip,req.query.auth_token))
 	{
 		console.log("admin sent" )
@@ -98,13 +94,13 @@ app.get('/admin', function(req, resp){
 	}
 });
 
-app.get('/venues', function(req, res){
+app.get(baseURL+'/venues', function(req, res){
 	res.setHeader('content-type', 'application/json');
 	res.send(venues);
 	// res.sendFile(path.join(__dirname+"venues.json"))
 	});
 
-app.get('/events/search', function(req, res){
+app.get(baseURL+'/events/search', function(req, res){
 	
 	
 	
@@ -240,7 +236,7 @@ app.get('/events/search', function(req, res){
 	
 });
 
-app.get('/events/get/:event_id', function(req, res){
+app.get(baseURL+'/events/get/:event_id', function(req, res){
 	
 	
 	var content = events;
@@ -256,7 +252,7 @@ app.get('/events/get/:event_id', function(req, res){
 	res.json({"error": "no such event"});
 });
 
-app.post('/venues/add', function(req, res){
+app.post(baseURL+'/venues/add', function(req, res){
 
 	console.log("adding venue with query: "+JSON.stringify(req.query));
 	
@@ -277,6 +273,7 @@ app.post('/venues/add', function(req, res){
 	if(!isAuthorised(req.ip,req.query.auth_token))
 	{
 		res.status(400);
+		res.setHeader('Content-Type', 'application/json');
 		res.json({"error": "not authorised, wrong token"});
 	}
 	else
@@ -284,6 +281,7 @@ app.post('/venues/add', function(req, res){
 	if (typeof(venue.name) == "undefined")
 	{
 		res.status(400);
+		res.setHeader('Content-Type', 'application/json');
 		res.json({"error": "not authorised, you must enter name"});
 	}
 	else
@@ -291,12 +289,13 @@ app.post('/venues/add', function(req, res){
 		content.venues[newVenueAtrributeName]=venue;
 		console.log(content);
 		venues=content;
+		res.setHeader('Content-Type', 'application/json');
 		res.json({'status' : 'ok'});
 	}
 	}
 });
 
-app.post('/events/add', function(req, res){
+app.post(baseURL+'/events/add', function(req, res){
 
 	
 	var content = events;
@@ -325,6 +324,7 @@ app.post('/events/add', function(req, res){
 		if (typeof(evnt.title) == "undefined"||typeof(evnt.venue_id) == "undefined"||typeof(evnt.event_id) == "undefined"||typeof(evnt.date) == "undefined")
 		{
 		res.status(400);
+		res.setHeader('Content-Type', 'application/json');
 		res.json({"error": "not authorised, you must enter name,event_id,title,venue_id"});
 		}
 		else
@@ -334,6 +334,7 @@ app.post('/events/add', function(req, res){
 			content.events=eventsArray;
 			console.log("eventss array is now: "+JSON.stringify(eventsArray));
 			events=content;
+			res.setHeader('Content-Type', 'application/json');
 			res.json({'status' : 'ok'});
 		}
 	}
@@ -341,28 +342,63 @@ app.post('/events/add', function(req, res){
 
 });
 
-app.post('/resetVenues',function(req, res){
+app.post(baseURL+'/resetVenues',function(req, res){
 	resetVenues();
+	res.setHeader('Content-Type', 'application/json');
 	res.json({'status' : 'ok'});
 });
 
-app.post('/resetEvents',function(req, res){
+app.post(baseURL+'/resetEvents',function(req, res){
 	resetEvents();
+	res.setHeader('Content-Type', 'application/json');
 	res.json({'status' : 'ok'});
 });
 
 function resetEvents()
 {
 	console.log("resetting Events")
-	events = {"events":[{"event_id":"e_1","title":"Jazz guitar off","venue_id":"v_1","date":"2018-4-4","url":"http://www.guitar.com/","blurb":"it'll be jazz great"}]};
-	venues = {"venues":{"v_1":{"name":"City Hall","postcode":"ne297th","town":"Newcastle","url":"www.cityhall.com","icon":"http://media.ticketmaster.co.uk/tm/en-gb/dbimages/2477v.jpg"},"v_2":{"name":"Metro Radio","postcode":"ne297gj","town":"Newcastle","url":"www.metro.com","icon":"https://eurohostels.s3.amazonaws.com/uploads/2016/03/Metro-Radio-Arena.jpg"}}};
+	
+	events = {"events":[
+						{
+						"event_id":"e_1",
+						"title":"Swaledale Squeeze 2018",
+						"blurb":"The biggest and best concertina weekend in the world. Held each May in Grinton Lodge YHA, North Yorkshire",
+						"date":"2018-05-21T16:00:00Z",
+						"url":"http://www.swaledalesqueeze.org.uk",
+						"venue_id":"v_1" },
+						
+						{"event_id":"e_3","title":"Jazz guitar off","venue_id":"v_1","date":"2018-4-4","url":"http://www.guitar.com/","blurb":"it'll be jazz great"},
+						{"event_id":"e_4","title":"A Piano","venue_id":"v_2","date":"2018-2-4","url":"http://www.piano.com/","blurb":"There will be keys everytime"}
+						
+						]};
+	
+	// fs.writeFile('events.json', fs.readFileSync("eventsCopy.JSON"), 'utf8');
 	
 }
 
 function resetVenues()
 {
 	console.log("resetting venues")
-	venues={"venues":{"v_1":{"name":"City Hall","postcode":"ne297th","town":"Newcastle","url":"www.cityhall.com","icon":"http://media.ticketmaster.co.uk/tm/en-gb/dbimages/2477v.jpg"},"v_2":{"name":"Metro Radio","postcode":"ne297gj","town":"Newcastle","url":"www.metro.com","icon":"https://eurohostels.s3.amazonaws.com/uploads/2016/03/Metro-Radio-Arena.jpg"}}};
+	venues={"venues":
+	{"v_1":{
+		"name":"Grinton Lodge Youth Hostel",
+		"postcode":"DL11 6HS",
+		"town":"Richmond",
+		"url":"http://www.yha.org.uk/hostel/grinton-lodge",
+		"icon":"http://www.yha.org.uk/sites/all/themes/yha/images/logos/yha_header_logo.png"
+		},
+	"v_2":{
+		"name":"Sage Gateshead",
+		"postcode":"NE8 2JR",
+		"town":"Gateshead",
+		"url":"http://www.sagegateshead.com/",
+		"icon":"http://www.sagegateshead.com/files/images/pageimage/1683.7123dea7/630x397.fitandcrop.jpg"
+		},
+	"v_3":{"name":"City Hall","postcode":"ne297th","town":"Newcastle","url":"www.cityhall.com","icon":"http://media.ticketmaster.co.uk/tm/en-gb/dbimages/2477v.jpg"},
+	"v_4":{"name":"Metro Radio","postcode":"ne297gj","town":"Newcastle","url":"www.metro.com","icon":"https://eurohostels.s3.amazonaws.com/uploads/2016/03/Metro-Radio-Arena.jpg"}
+	}
+	};
+	// fs.writeFile('venues.json', fs.readFileSync("venuesCopy.JSON"), 'utf8');
 
 }
 

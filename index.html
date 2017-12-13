@@ -11,6 +11,8 @@
 
 $(document).ready(function(){
 
+	var baseURL = "/events2017"
+
 	var eventsToDisplay='{"events":[]}';
 	console.log("doc ready");
 	
@@ -43,11 +45,11 @@ $(document).ready(function(){
 		var cookie = document.cookie;
 		var lastAuth_token = cookie.replace("auth_token=","");
 		var lastAuth_tokenValid=false
-		$.getJSON("/login/validate?auth_token="+lastAuth_token, function(data)
+		$.getJSON(baseURL+"/login/validate?auth_token="+lastAuth_token, function(data)
 		{
 			if (data.isValid)
 			{
-				window.location.assign("/admin?auth_token="+lastAuth_token);
+				window.location.assign(baseURL+"/admin?auth_token="+lastAuth_token);
 			}
 		});
 	});
@@ -56,14 +58,14 @@ $(document).ready(function(){
 	{
 		var loginURL = "/login/authenticate?username="+$("#username").val()+"&password="+$("#password").val()
 		
-		$.post(loginURL, function(data)
+		$.post(baseURL+loginURL, function(data)
 		{
 			console.log("we tried to login this is what we got: "+JSON.stringify(data));
 			var newAuthToken = data.auth_token;
 			if(typeof(newAuthToken)!="undefined")
 			{
 				document.cookie="auth_token="+newAuthToken;
-				window.location.assign("/admin?auth_token="+newAuthToken);
+				window.location.assign(baseURL+"/admin?auth_token="+newAuthToken);
 			}
 			else
 			{
@@ -101,7 +103,7 @@ $(document).ready(function(){
 		endDate = $("#dateBefore").val();
 
 		queryString+="?title="+$("#searchTitle").val()+"&dateAfter="+startDate+"&dateBefore="+endDate;
-		$.getJSON(queryString, function(data)
+		$.getJSON(baseURL+queryString, function(data)
 		{
 			console.log("we got "+JSON.stringify(data)+" from server");
 			if(data.events.length==0)
@@ -160,7 +162,7 @@ $(document).ready(function(){
 						{
 							var evnt=xmlReturned.getElementsByTagName("events")[0].childNodes[i];
 							var eventAsString=(new XMLSerializer()).serializeToString(evnt);
-							console.log(eventAsString);
+							
 							
 							if(!(/^\s+$/.test(eventAsString)))
 							{
@@ -198,7 +200,7 @@ $(document).ready(function(){
 	
 	function setEventsToDisplay(text)
 	{
-		console.log("setting evetns to display as: "+text);
+		// console.log("setting evetns to display as: "+text);
 		eventsToDisplay=text;
 	}
 	
@@ -216,11 +218,8 @@ $(document).ready(function(){
 	// this must be in json form {"events":[]}
 	function addEventsToDisplay(text)
 	{
-		if (text=="" || typeof(text)=="undefined")
-		{
-			console.log("tried to add evetns but nothing awas passwed in")
-		}
-		else
+		if (!(text=="" || typeof(text)=="undefined"))
+		
 		{
 			var currentEvents=JSON.parse(eventsToDisplay);
 			var newEvents=JSON.parse(text);
@@ -270,7 +269,7 @@ $(document).ready(function(){
 		var venue={}
 		if (typeof(event.venue)!="undefined")
 		{
-			$.get("./venues",function(data)
+			$.get(baseURL+"/venues",function(data)
 			{
 				if (typeof(event.venue)!="undefined")
 				{
@@ -298,9 +297,11 @@ $(document).ready(function(){
 		
 		if (typeof(event.url)!="undefined")
 		{
-		html += '<a href="'+event.url+'">'+event.url.toString()+'</a> <br>\r\n'
+		html += '<a href="'+event.url.substring(0,25)+'">'+event.url.toString()+'...</a> <br>\r\n'
 		}
 		
+		html+="</div>\r\n";
+		html+="</div>\r\n";
 		html+="</div>\r\n"
 		
 		
@@ -340,7 +341,7 @@ $(document).ready(function(){
 		
 		if (event.url!="(error: xml property not found)")
 		{
-		html += '<a href="'+event.url+'">'+event.url.toString()+'</a> <br>\r\n'
+		html += '<a href="'+event.url+'">'+event.url.toString().substring(0,25)+'</a> <br>\r\n'
 		}
 		
 		html+="</div>\r\n";
@@ -465,20 +466,6 @@ $(document).ready(function(){
 	<div class="col-sm-6" >
 	<br>
 	<div id="eventsList" >
-		<!-- <div class="col-sm-3">
-			<div class="panel panel-primary">
-				<div class="panel-heading">heading</div>
-				<div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
-				<div class="panel-footer">foots</div>
-			</div>
-		</div>
-		<div class="col-sm-3"> 
-			<div class="panel panel-primary">
-		   <div class="panel-heading">heading</div>
-			<div class="panel-body"><img src="https://placehold.it/150x80?text=IMAGE" class="img-responsive" style="width:100%" alt="Image"></div>
-			<div class="panel-footer">foots</div>
-			</div>
-		</div> -->
 	</div>
 	</div>
 	
